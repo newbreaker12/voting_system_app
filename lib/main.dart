@@ -15,11 +15,10 @@ void main() {
 }
 // void main() => runApp(const Login());
 
-String email = "psr007700@students.ephec.be";
-String password = "pss";
-TextEditingController emailController = new TextEditingController(text: email);
-TextEditingController passwordController =
-    new TextEditingController(text: password);
+String emailTemp = "psr007700@students.ephec.be";
+String passwordTemp = "pss";
+TextEditingController emailController = new TextEditingController(text: emailTemp);
+TextEditingController passwordController = new TextEditingController(text: passwordTemp);
 String url = "https://localhost:44396";
 Map<String, String> header = new Map<String, String>();
 
@@ -55,7 +54,7 @@ class Login extends StatelessWidget {
   }
 }
 
-Future<void> authenticate(BuildContext context, String username, String password) async {
+Future<void> authenticate(BuildContext context, String email, String password) async {
   Map<String, String> headerTemp = new Map<String, String>();
   headerTemp['Authorization'] = email + ":" + password;
   var response = await http.get(url + '/users/login', headers: headerTemp);
@@ -117,7 +116,7 @@ class SuccessPage extends StatelessWidget {
         direction: Axis.vertical,
         children: const <Widget>[
           Center(
-              child: Text("No voting session available", textAlign: TextAlign.center)
+              child: Text("You voted successfully", textAlign: TextAlign.center)
           )
         ],
       ),
@@ -305,6 +304,7 @@ class VotePage extends State<MyApp> {
     return Scaffold(
         appBar: AppBar(
           title: const Text("Vote page"),
+          leading: Image.asset('eplogo.png'),
           automaticallyImplyLeading: false,
         ),
         body: Flex(direction: Axis.vertical, children: <Widget>[
