@@ -15,7 +15,7 @@ void main() {
 }
 // void main() => runApp(const Login());
 
-String emailTemp = "psr007700@students.ephec.be";
+String emailTemp = "newbreaker@gmail.com";
 String passwordTemp = "pss";
 TextEditingController emailController = new TextEditingController(text: emailTemp);
 TextEditingController passwordController = new TextEditingController(text: passwordTemp);
