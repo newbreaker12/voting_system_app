@@ -333,8 +333,8 @@ class VotePage extends State<MyApp> {
               subArticles.length,
               (dynamic index) => DataRow(
                 cells: <DataCell>[
-                  DataCell(Text(subArticles[index].name)),
-                  DataCell(Text(subArticles[index].description)),
+                  DataCell(Text(subArticles[index].name ?? "")),
+                  DataCell(Text(subArticles[index].description ?? "")),
                   DataCell(
                     Flex(direction: Axis.horizontal, children: <Widget>[
                       ElevatedButton(
