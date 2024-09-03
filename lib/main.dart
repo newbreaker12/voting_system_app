@@ -16,10 +16,10 @@ void main() {
 // void main() => runApp(const Login());
 
 String emailTemp = "newbreaker@gmail.com";
-String passwordTemp = "pss";
+String passwordTemp = "pass";
 TextEditingController emailController = new TextEditingController(text: emailTemp);
 TextEditingController passwordController = new TextEditingController(text: passwordTemp);
-String url = "https://localhost:44396";
+String url = "https://localhost:5001";
 Map<String, String> header = new Map<String, String>();
 
 class Login extends StatelessWidget {
@@ -56,13 +56,15 @@ class Login extends StatelessWidget {
 
 Future<void> authenticate(BuildContext context, String email, String password) async {
   Map<String, String> headerTemp = new Map<String, String>();
-  headerTemp['Authorization'] = email + ":" + password;
-  var response = await http.get(Uri(path: url + '/users/login'), headers: headerTemp
+  headerTemp['content-type'] = 'application/json';
+  var response = await http.post(Uri.parse(url + '/users/login'),
+    headers: headerTemp,
+    body: json.encode({"email": email, "password": password})
   );
 
   try {
     if (response.statusCode == 200) {
-      header['Authorization'] = email + ":" + password;
+      header['Authorization'] = 'Bearer ' + jsonDecode(response.body)['token'].toString();
 
       Navigator.push(
         context,
@@ -170,7 +172,7 @@ class VotePage extends State<MyApp> {
 
 
   Future<void> vote(int id, int type) async {
-    var response = await http.get(Uri(path: url + '/vote/subarticle/'+id.toString()+'/vote/'+type.toString()), headers: header);
+    var response = await http.get(Uri.parse(url + '/vote/subarticle/'+id.toString()+'/vote/'+type.toString()), headers: header);
 
     try {
       if (response.statusCode == 200) {
@@ -180,7 +182,7 @@ class VotePage extends State<MyApp> {
   }
 
   Future<void> voteSubmit(int articleId) async {
-    var response = await http.get(Uri(path:url + '/vote/article/'+articleId.toString()+'/vote/submit'), headers: header);
+    var response = await http.get(Uri.parse(url + '/vote/article/'+articleId.toString()+'/vote/submit'), headers: header);
 
     try {
       if (response.statusCode == 200) {
@@ -193,7 +195,7 @@ class VotePage extends State<MyApp> {
   }
 
   Future<void> getData() async {
-    var response = await http.get(Uri(path:url + '/article/user'), headers: header);
+    var response = await http.get(Uri.parse(url + '/article/user'), headers: header);
 
     try {
       if (response.statusCode == 200) {
