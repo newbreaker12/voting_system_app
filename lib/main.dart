@@ -57,7 +57,8 @@ class Login extends StatelessWidget {
 Future<void> authenticate(BuildContext context, String email, String password) async {
   Map<String, String> headerTemp = new Map<String, String>();
   headerTemp['Authorization'] = email + ":" + password;
-  var response = await http.get(url + '/users/login', headers: headerTemp);
+  var response = await http.get(Uri(path: url + '/users/login'), headers: headerTemp
+  );
 
   try {
     if (response.statusCode == 200) {
@@ -169,7 +170,7 @@ class VotePage extends State<MyApp> {
 
 
   Future<void> vote(int id, int type) async {
-    var response = await http.get(url + '/vote/subarticle/'+id.toString()+'/vote/'+type.toString(), headers: header);
+    var response = await http.get(Uri(path: url + '/vote/subarticle/'+id.toString()+'/vote/'+type.toString()), headers: header);
 
     try {
       if (response.statusCode == 200) {
@@ -179,7 +180,7 @@ class VotePage extends State<MyApp> {
   }
 
   Future<void> voteSubmit(int articleId) async {
-    var response = await http.get(url + '/vote/article/'+articleId.toString()+'/vote/submit', headers: header);
+    var response = await http.get(Uri(path:url + '/vote/article/'+articleId.toString()+'/vote/submit'), headers: header);
 
     try {
       if (response.statusCode == 200) {
@@ -192,7 +193,7 @@ class VotePage extends State<MyApp> {
   }
 
   Future<void> getData() async {
-    var response = await http.get(url + '/article/user', headers: header);
+    var response = await http.get(Uri(path:url + '/article/user'), headers: header);
 
     try {
       if (response.statusCode == 200) {
