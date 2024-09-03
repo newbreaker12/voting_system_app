@@ -302,6 +302,16 @@ class VotePage extends State<MyApp> {
     );
   }
 
+  requestPinCode(int articleId) async {
+    var response = await http.get(Uri.parse(url + '/users/pincode'), headers: header);
+
+    try {
+      if (response.statusCode == 200) {
+        showErrorDialog(context, jsonDecode(response.body)['data'].toString());
+      }
+    } catch (e) {}
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -309,8 +319,17 @@ class VotePage extends State<MyApp> {
           title: const Text("Vote page"),
           leading: Image.asset('eplogo.png'),
           automaticallyImplyLeading: false,
+
         ),
-        body: Flex(direction: Axis.vertical, children: <Widget>[
+        body: Flex(direction: Axis.vertical, children: <Widget>[ElevatedButton(
+          child: const Text('Request Pincode'),
+          style: ButtonStyle(
+            backgroundColor: WidgetStateProperty.all<Color>(Colors.green),
+          ),
+          onPressed: () {
+            requestPinCode(article.id);
+          },
+        ),
           Text(article.name),
           Text('Hide Voted'),
           Switch(
@@ -342,11 +361,11 @@ class VotePage extends State<MyApp> {
                     Flex(direction: Axis.horizontal, children: <Widget>[
                       ElevatedButton(
                         style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
+                          backgroundColor: WidgetStateProperty.all<Color>(Colors.red),
                             foregroundColor:
                             subArticles[index].voteType == 0 ?
-                            MaterialStateProperty.all<Color>(Colors.yellow)
-                                : MaterialStateProperty.all<Color>(Colors.black)
+                            WidgetStateProperty.all<Color>(Colors.yellow)
+                                : WidgetStateProperty.all<Color>(Colors.black)
                         ),
                         child: const Text('D'),
                         onPressed: () {
@@ -355,11 +374,11 @@ class VotePage extends State<MyApp> {
                       ),
                       ElevatedButton(
                         style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                          backgroundColor: WidgetStateProperty.all<Color>(Colors.grey),
                             foregroundColor:
                             subArticles[index].voteType == 1 ?
-                            MaterialStateProperty.all<Color>(Colors.yellow)
-                                : MaterialStateProperty.all<Color>(Colors.black)
+                            WidgetStateProperty.all<Color>(Colors.yellow)
+                                : WidgetStateProperty.all<Color>(Colors.black)
                         ),
                         child: const Text('N'),
                         onPressed: () {
@@ -368,11 +387,11 @@ class VotePage extends State<MyApp> {
                       ),
                       ElevatedButton(
                         style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(Colors.green),
+                          backgroundColor: WidgetStateProperty.all<Color>(Colors.green),
                             foregroundColor:
                             subArticles[index].voteType == 2 ?
-                            MaterialStateProperty.all<Color>(Colors.yellow)
-                                : MaterialStateProperty.all<Color>(Colors.black)
+                            WidgetStateProperty.all<Color>(Colors.yellow)
+                                : WidgetStateProperty.all<Color>(Colors.black)
                         ),
                         child: const Text('A'),
                         onPressed: () {
@@ -388,7 +407,7 @@ class VotePage extends State<MyApp> {
           ElevatedButton(
             child: const Text('SUBMIT'),
             style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all<Color>(Colors.green),
+              backgroundColor: WidgetStateProperty.all<Color>(Colors.green),
             ),
             onPressed: () {
               showSubmitDialog(article.id);
