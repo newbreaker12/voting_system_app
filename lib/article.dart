@@ -80,3 +80,9 @@ class Session {
   String from = '';
   String to = '';
 }
+class UserData {
+  String email = '';
+  String firtName = '';
+  String lastName = '';
+  String role = '';
+}

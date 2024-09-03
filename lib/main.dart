@@ -1,9 +1,8 @@
 import 'dart:convert';
-import 'dart:math';
-import 'dart:developer' as dev;
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 import 'article.dart';
 
@@ -21,6 +20,7 @@ TextEditingController emailController = new TextEditingController(text: emailTem
 TextEditingController passwordController = new TextEditingController(text: passwordTemp);
 String url = "https://localhost:5001";
 Map<String, String> header = new Map<String, String>();
+UserData userData = new UserData();
 
 class Login extends StatelessWidget {
   const Login({Key? key}) : super(key: key);
@@ -64,16 +64,26 @@ Future<void> authenticate(BuildContext context, String email, String password) a
 
   try {
     if (response.statusCode == 200) {
-      header['Authorization'] = 'Bearer ' + jsonDecode(response.body)['token'].toString();
+      var token = jsonDecode(response.body)['token'].toString();
+      header['Authorization'] = 'Bearer ' + token;
+      // decode jwt
+      var jwt = JwtDecoder.decode(token);
+      userData.email = jwt['email'];
+      userData.firtName = jwt['firstName'];
+      userData.lastName = jwt['lastName'];
+      userData.role = jwt['role'];
+
 
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const MyApp()),
+        MaterialPageRoute(builder: (context) => const HomePageWidget()),
       );
     } else {
       showErrorDialog(context, jsonDecode(response.body)['data'].toString());
     }
-  } catch (e) {}
+  } catch (e) {
+    showErrorDialog(context, e.toString());
+  }
 }
 
 showErrorDialog(BuildContext context, String message) {
@@ -148,15 +158,138 @@ class NotSessionsPage extends StatelessWidget {
     );
   }
 }
+class HomePage extends State<HomePageWidget> {
 
-class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  requestPinCode() async {
+    await http.get(Uri.parse(url + '/users/pincode'), headers: header);
+  }
+
+  gotoVotePage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const VotePageWidget()),
+    );
+  }
+
+  gotoUserDetailsPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const UserDetailsWidget()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('No Voting Session Available'),
+        automaticallyImplyLeading: false,
+      ),
+      body: Flex(direction: Axis.vertical, children: <Widget>[
+        ElevatedButton(
+          child: const Text('Request Pincode'),
+          style: ButtonStyle(
+            backgroundColor: WidgetStateProperty.all<Color>(Colors.green),
+          ),
+          onPressed: () {
+            requestPinCode();
+          },
+        ),
+        ElevatedButton(
+          child: const Text('User Details'),
+          style: ButtonStyle(
+            backgroundColor: WidgetStateProperty.all<Color>(Colors.green),
+          ),
+          onPressed: () {
+            gotoUserDetailsPage();
+          },
+        ),
+        ElevatedButton(
+          child: const Text('Vote'),
+          style: ButtonStyle(
+            backgroundColor: WidgetStateProperty.all<Color>(Colors.green),
+          ),
+          onPressed: () {
+            gotoVotePage();
+          },
+        )
+    ],
+      ),
+    );
+  }
+}
+
+class HomePageWidget extends StatefulWidget {
+  const HomePageWidget({Key? key}) : super(key: key);
+
+  @override
+  HomePage createState() => HomePage();
+}
+
+class VotePageWidget extends StatefulWidget {
+  const VotePageWidget({Key? key}) : super(key: key);
 
   @override
   VotePage createState() => VotePage();
 }
 
-class VotePage extends State<MyApp> {
+class UserDetailsWidget extends StatefulWidget {
+  const UserDetailsWidget({Key? key}) : super(key: key);
+
+  @override
+  UserDetails createState() => UserDetails();
+}
+
+class UserDetails extends State<UserDetailsWidget> {
+
+  @override
+  void initState() {
+    super.initState();
+    getUserData();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('User Details'),
+        automaticallyImplyLeading: false,
+      ),
+      body: Flex(
+        mainAxisAlignment: MainAxisAlignment.center,
+        direction: Axis.vertical,
+        children: <Widget>[
+          Center(
+              child: Text("User Details", textAlign: TextAlign.center)
+          ),
+          Center(
+              child: Text("Name: " + userData.firtName + " " + userData.lastName, textAlign: TextAlign.center)
+          ),
+          Center(
+              child: Text("Email: " + userData.email, textAlign: TextAlign.center)),
+          Center(
+              child: Text("Role: " + userData.role, textAlign: TextAlign.center))
+        ],
+
+      ),
+    );
+  }
+
+  void getUserData() {
+    // get user data
+    var response = http.get(Uri.parse(url + '/users/user'), headers: header);
+
+
+  }
+
+}
+
+class VotePage extends State<VotePageWidget> {
   Article article = new Article();
 
   List<SubArticle> subArticles = [];
@@ -302,15 +435,6 @@ class VotePage extends State<MyApp> {
     );
   }
 
-  requestPinCode(int articleId) async {
-    var response = await http.get(Uri.parse(url + '/users/pincode'), headers: header);
-
-    try {
-      if (response.statusCode == 200) {
-        showErrorDialog(context, jsonDecode(response.body)['data'].toString());
-      }
-    } catch (e) {}
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -321,15 +445,7 @@ class VotePage extends State<MyApp> {
           automaticallyImplyLeading: false,
 
         ),
-        body: Flex(direction: Axis.vertical, children: <Widget>[ElevatedButton(
-          child: const Text('Request Pincode'),
-          style: ButtonStyle(
-            backgroundColor: WidgetStateProperty.all<Color>(Colors.green),
-          ),
-          onPressed: () {
-            requestPinCode(article.id);
-          },
-        ),
+        body: Flex(direction: Axis.vertical, children: <Widget>[
           Text(article.name),
           Text('Hide Voted'),
           Switch(
