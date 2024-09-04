@@ -270,7 +270,7 @@ class UserDetails extends State<UserDetailsWidget> {
     if (changePasswordController.text == changePasswordController2.text) {
       var response = await http.put(Uri.parse(url + '/users/changePassword'), headers: header, body: json.encode({"password": changePasswordController.text}));
       if (response.statusCode == 200) {
-        showOkDialog(context, "Something went wrong", "Password changed successfully");
+        showOkDialog(context, "Success", "Password changed successfully");
       } else {
         showOkDialog(context, "Something went wrong", "Something went wrong");
       }
