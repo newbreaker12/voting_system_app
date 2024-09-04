@@ -19,7 +19,13 @@ String passwordTemp = "pass";
 TextEditingController emailController = new TextEditingController(text: emailTemp);
 TextEditingController passwordController = new TextEditingController(text: passwordTemp);
 String url = "https://localhost:5001";
-Map<String, String> header = new Map<String, String>();
+
+// content type json
+Map<String, String> header = {
+  'content-type': 'application/json',
+};
+
+
 UserData userData = new UserData();
 
 class Login extends StatelessWidget {
@@ -55,11 +61,9 @@ class Login extends StatelessWidget {
 }
 
 Future<void> authenticate(BuildContext context, String email, String password) async {
-  Map<String, String> headerTemp = new Map<String, String>();
-  headerTemp['content-type'] = 'application/json';
   var response = await http.post(Uri.parse(url + '/users/login'),
-    headers: headerTemp,
-    body: json.encode({"email": email, "password": password})
+      headers: header,
+      body: json.encode({"email": email, "password": password})
   );
 
   try {
@@ -79,16 +83,16 @@ Future<void> authenticate(BuildContext context, String email, String password) a
         MaterialPageRoute(builder: (context) => const HomePageWidget()),
       );
     } else {
-      showErrorDialog(context, jsonDecode(response.body)['data'].toString());
+      showOkDialog(context, "Something went wrong", jsonDecode(response.body).toString());
     }
   } catch (e) {
-    showErrorDialog(context, e.toString());
+    showOkDialog(context, "Something went wrong", e.toString());
   }
 }
 
-showErrorDialog(BuildContext context, String message) {
+showOkDialog(BuildContext context, String title, String message) {
   // set up the buttons
-  Widget cancelButton = TextButton(
+  Widget okButton = TextButton(
     child: Text("OK"),
     onPressed:  () {
       Navigator.of(context).pop();
@@ -97,10 +101,10 @@ showErrorDialog(BuildContext context, String message) {
 
   // set up the AlertDialog
   AlertDialog alert = AlertDialog(
-    title: Text("Something went wrong"),
+    title: Text(title),
     content: Text(message),
     actions: [
-      cancelButton,
+      okButton,
     ],
   );
 
@@ -187,39 +191,45 @@ class HomePage extends State<HomePageWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('No Voting Session Available'),
+        title: const Text('Voting System'),
         automaticallyImplyLeading: false,
       ),
-      body: Flex(direction: Axis.vertical, children: <Widget>[
-        ElevatedButton(
-          child: const Text('Request Pincode'),
-          style: ButtonStyle(
-            backgroundColor: WidgetStateProperty.all<Color>(Colors.green),
-          ),
-          onPressed: () {
-            requestPinCode();
-          },
-        ),
-        ElevatedButton(
-          child: const Text('User Details'),
-          style: ButtonStyle(
-            backgroundColor: WidgetStateProperty.all<Color>(Colors.green),
-          ),
-          onPressed: () {
-            gotoUserDetailsPage();
-          },
-        ),
-        ElevatedButton(
-          child: const Text('Vote'),
-          style: ButtonStyle(
-            backgroundColor: WidgetStateProperty.all<Color>(Colors.green),
-          ),
-          onPressed: () {
-            gotoVotePage();
-          },
-        )
-    ],
-      ),
+      body: Flex(direction: Axis.vertical,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Center( child:
+          ElevatedButton(
+            child: const Text('Request Pincode'),
+            style: ButtonStyle(
+              backgroundColor: WidgetStateProperty.all<Color>(Colors.green),
+            ),
+            onPressed: () {
+              requestPinCode();
+            },
+          )),
+          Center( child:
+          ElevatedButton(
+            child: const Text('User Details'),
+            style: ButtonStyle(
+              backgroundColor: WidgetStateProperty.all<Color>(Colors.green),
+            ),
+            onPressed: () {
+              gotoUserDetailsPage();
+            },
+          )),
+          Center( child:
+          ElevatedButton(
+            child: const Text('Vote'),
+            style: ButtonStyle(
+              backgroundColor: WidgetStateProperty.all<Color>(Colors.green),
+            ),
+            onPressed: () {
+              gotoVotePage();
+            },
+          )
+          )
+        ],
+      ) ,
     );
   }
 }
@@ -247,10 +257,26 @@ class UserDetailsWidget extends StatefulWidget {
 
 class UserDetails extends State<UserDetailsWidget> {
 
+  TextEditingController changePasswordController = new TextEditingController(text: '');
+  TextEditingController changePasswordController2 = new TextEditingController(text: '');
+
   @override
   void initState() {
     super.initState();
     getUserData();
+  }
+
+  void changePassword() async {
+    if (changePasswordController.text == changePasswordController2.text) {
+      var response = await http.put(Uri.parse(url + '/users/changePassword'), headers: header, body: json.encode({"password": changePasswordController.text}));
+      if (response.statusCode == 200) {
+        showOkDialog(context, "Something went wrong", "Password changed successfully");
+      } else {
+        showOkDialog(context, "Something went wrong", "Something went wrong");
+      }
+    } else {
+      showOkDialog(context, "Something went wrong", "Passwords do not match");
+    }
   }
 
   @override
@@ -273,7 +299,31 @@ class UserDetails extends State<UserDetailsWidget> {
           Center(
               child: Text("Email: " + userData.email, textAlign: TextAlign.center)),
           Center(
-              child: Text("Role: " + userData.role, textAlign: TextAlign.center))
+              child: Text("Role: " + userData.role, textAlign: TextAlign.center)),
+
+
+          Center(
+              child: Text("Password Settings", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold),
+              )),
+          TextField(
+            controller: changePasswordController,
+            obscureText: true,
+          ),
+          TextField(
+            controller: changePasswordController2,
+            obscureText: true,
+          ),
+
+          ElevatedButton(
+          child: const Text('Change Password'),
+          style: ButtonStyle(
+          backgroundColor: WidgetStateProperty.all<Color>(Colors.green),
+          ),
+          onPressed: () {
+            changePassword();
+          },
+          ),
+
         ],
 
       ),
@@ -451,9 +501,9 @@ class VotePage extends State<VotePageWidget> {
           Switch(
             value: hidden,
             onChanged: (value) {
-                setState(() {hidden = !hidden;getData();});
-              },
-            ),
+              setState(() {hidden = !hidden;getData();});
+            },
+          ),
           Text(counter),
           DataTable(
             columns: const <DataColumn>[
@@ -469,7 +519,7 @@ class VotePage extends State<VotePageWidget> {
             ],
             rows: List<DataRow>.generate(
               subArticles.length,
-              (dynamic index) => DataRow(
+                  (dynamic index) => DataRow(
                 cells: <DataCell>[
                   DataCell(Text(subArticles[index].name)),
                   DataCell(Text(subArticles[index].description)),
@@ -477,7 +527,7 @@ class VotePage extends State<VotePageWidget> {
                     Flex(direction: Axis.horizontal, children: <Widget>[
                       ElevatedButton(
                         style: ButtonStyle(
-                          backgroundColor: WidgetStateProperty.all<Color>(Colors.red),
+                            backgroundColor: WidgetStateProperty.all<Color>(Colors.red),
                             foregroundColor:
                             subArticles[index].voteType == 0 ?
                             WidgetStateProperty.all<Color>(Colors.yellow)
@@ -490,7 +540,7 @@ class VotePage extends State<VotePageWidget> {
                       ),
                       ElevatedButton(
                         style: ButtonStyle(
-                          backgroundColor: WidgetStateProperty.all<Color>(Colors.grey),
+                            backgroundColor: WidgetStateProperty.all<Color>(Colors.grey),
                             foregroundColor:
                             subArticles[index].voteType == 1 ?
                             WidgetStateProperty.all<Color>(Colors.yellow)
@@ -503,7 +553,7 @@ class VotePage extends State<VotePageWidget> {
                       ),
                       ElevatedButton(
                         style: ButtonStyle(
-                          backgroundColor: WidgetStateProperty.all<Color>(Colors.green),
+                            backgroundColor: WidgetStateProperty.all<Color>(Colors.green),
                             foregroundColor:
                             subArticles[index].voteType == 2 ?
                             WidgetStateProperty.all<Color>(Colors.yellow)
